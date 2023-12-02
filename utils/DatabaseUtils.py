@@ -1,0 +1,91 @@
+#import MySQLdb
+# from mysql.connector import Error
+import pandas as pd
+#from MySQLdb._exceptions import Error
+
+from utils.Proprerties import Properties
+
+
+class DatabaseUtils:
+    fileWrites = {
+        "LOGS/Events.csv":"",
+        "LOGS/Simulation.csv":"",
+        "LOGS/Properties.csv":""
+    }
+    def __init__(self):
+        pass
+    def clear(self):
+        DatabaseUtils.fileWrites = {
+            "LOGS/Events.csv":"",
+            "LOGS/Simulation.csv":"",
+            "LOGS/Properties.csv":""
+        }
+    def WriteEvent(self, event_type:str,simulation_uuid:str,user_id:str,timestamp:str,duration:str):
+        self.write("LOGS/Events.csv",f"{event_type},{simulation_uuid},{user_id},{timestamp},{duration}\n")
+    def WriteSimulation(self, simulation_uuid:str):
+        self.write("LOGS/Simulation.csv",f"{simulation_uuid}\n")
+    def WriteProperties(self, simulation_uuid:str, type_:str, value:str):
+        self.write("LOGS/Properties.csv",f"{simulation_uuid},{type_},{value}\n")
+        
+    def write(self, file,str_):
+        #m = {'E':"Events.csv",'S':"Simulation.csv",'P':"Properties.csv"}
+        #name = m[file]
+        #if(name is None): name=file
+        DatabaseUtils.fileWrites[file] += str_
+        
+        #print(self.fileWrites[file])
+        #with open(file, "a") as myfile:
+        #    myfile.write(str_)
+    def writeAll(self):
+        print("EEEEEEEEEEEEEEEEEEEEEEE")
+        print(self.fileWrites["LOGS/Events.csv"])
+        for file,str_ in self.fileWrites.items():
+            print("#######################")
+            print(str_)
+            with open(file, "a") as myfile:
+                myfile.write(str_)
+    
+    def log_event(self, event_type, user_id, time, duration):
+        print("EVENT")
+        print(event_type)
+        # self.execute_query(
+        #     "INSERT INTO Events (EVENT_TYPE,SIMULATION_UUID,USER_ID,TIMESTAMP,DURATION) VALUES (%s,%s,%s,%s,%s)",
+        #     (event_type, Properties.SIMULATION_UUID, user_id, time, duration))
+        self.WriteEvent(event_type, Properties.SIMULATION_UUID, user_id, time, duration)
+
+    def log_simulation_start(self):
+        #self.execute_query("INSERT INTO Simulation (UUID) VALUES (%s)", [Properties.SIMULATION_UUID])
+        self.WriteSimulation(Properties.SIMULATION_UUID)
+        self.log_simulation_parameters()
+
+    def log_simulation_end(self):
+        if self.broker is None:
+            return
+
+        self.log_event("TOTAL USER", None, None, Properties.USER_COUNT)
+
+        pass
+
+    def log_simulation_parameters(self):
+        for name, value in Properties.get_parameters():
+            # self.execute_query("INSERT INTO Properties (SIMULATION_UUID,TYPE,VALUE) VALUES (%s,%s,%s)",
+            #                    (Properties.SIMULATION_UUID, name, value))
+            self.WriteProperties(Properties.SIMULATION_UUID, name, value)
+
+    def get_all_simulation_with_prop(self):
+        return []
+        return self.execute_simple_select_query("Select * FROM Simulation"
+                                         " LEFT JOIN Properties"
+                                         " ON Simulation.UUID = Properties.SIMULATION_UUID")
+
+    def get_all_simulations_uuids(self):
+        return []
+        return self.execute_simple_select_query("Select * FROM Simulation")
+    
+    def get_props_for_simulation_uuid(self, simulation_uuid):
+        return []
+        return self.execute_select_query("Select * FROM Properties where SIMULATION_UUID=%s",[simulation_uuid])
+
+    def get_data_for_simulation(self, simulation_uuid, event_type):
+        return []
+        return self.execute_select_query("Select * FROM Events where SIMULATION_UUID=%s AND EVENT_TYPE=%s", (simulation_uuid,event_type))
