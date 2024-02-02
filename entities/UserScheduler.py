@@ -1,7 +1,11 @@
 import random
 import numpy as np
 import math
+
+
+from scipy import stats
 from utils.Proprerties import Properties
+from statsmodels.distributions.mixture_rvs import MixtureDistribution
 
 
 class UserScheduler:
@@ -11,6 +15,15 @@ class UserScheduler:
         self.USERS_NUMBER = []
         self.USAGE_TIME = []
         self.TIME_BETWEEN_LOGINS = []
+
+        self.alpha1 = 4.5772
+        self.beta1 = 0.1835
+        self.alpha2 = 2.7327
+        self.beta2 = 0.586
+        self.prob = [0.6724, 0.3276]
+
+        self.mixdis = MixtureDistribution()
+
 
     # stari kod, ne koristi se ovaj mod
     def basic_mod(self):
@@ -46,13 +59,22 @@ class UserScheduler:
                                                                         Properties.NEXT_LOGIN_STD)
                                     for _ in range(sum(self.USERS_NUMBER))]
 
-        self.USAGE_TIME = [np.random.gamma(Properties.GAMMA_25_SHAPE, Properties.GAMMA_25_SCALE)
+        '''self.USAGE_TIME = [np.random.gamma(Properties.GAMMA_25_SHAPE, Properties.GAMMA_25_SCALE)
                            for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.25))]
         self.USAGE_TIME.extend([np.random.gamma(Properties.GAMMA_75_SHAPE, Properties.GAMMA_75_SCALE)
                                 for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.75))])
 
-        self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
+        self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]'''
 
+        ## Nas nov USAGE_TIME. Za sada hardcoded sa norm raspodelom
+        self.USAGE_TIME = [self.mixdis.rvs(prob=self.prob, size=1,
+                                dist=[stats.norm, stats.norm],
+                                kwargs=(
+                                    dict(loc=self.alpha1, scale=np.sqrt(self.beta1)),
+                                    dict(loc=self.alpha2, scale=np.sqrt(self.beta2))
+                                )
+                            )for _ in range(math.ceil(sum(self.USERS_NUMBER)))]
+        self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
         # povecati svaki za neku vrednost
         self.TIME_BETWEEN_LOGINS = [random.expovariate(Properties.EXPONENTIAL_LAMBDA) + 1
                                     for _ in range(sum(self.USERS_NUMBER))]

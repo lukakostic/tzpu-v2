@@ -41,12 +41,14 @@ maxVremeSLA = rnd((0.1, 0.5, 1.5))
 Properties.USER_COUNT = 300
 Properties.NEXT_LOGIN_MEAN = rnd((90,120))
 Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
+
 ## option 2
-Properties.USER_COUNT = 300
+##Properties.USER_COUNT = 300
 #### T = 0
-Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
+##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
 #### T>0
-Properties.USERS_PER_LOGIN_MEAN = rnd((3,5,8))
+##Properties.USERS_PER_LOGIN_MEAN = rnd((3,5,8))
+
 ## option 3
 #### csv = xlsx ?
 # usage time
