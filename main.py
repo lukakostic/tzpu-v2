@@ -20,6 +20,8 @@ import simpy
 import json
 import tkinter as tk
 
+import random
+
 main = tk.Tk()
 main.title("Simulation")
 main.config(bg="#fff")
@@ -28,6 +30,40 @@ top_frame.pack(side=tk.TOP, expand=False)
 canvas = tk.Canvas(main, width=1300, height=350, bg="white")
 canvas.pack(side=tk.TOP, expand=False)
 
+############################################
+def rnd(tp,idx=None):
+    return random.choice(tp) if(idx==None) else tp[idx]
+# Tp
+# SLA kriterijumi
+maxVremeSLA = rnd((0.1, 0.5, 1.5))
+# arrival pattern
+## option 1
+Properties.USER_COUNT = 300
+Properties.NEXT_LOGIN_MEAN = rnd((90,120))
+Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
+## option 2
+Properties.USER_COUNT = 300
+#### T = 0
+Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
+#### T>0
+Properties.USERS_PER_LOGIN_MEAN = rnd((3,5,8))
+## option 3
+#### csv = xlsx ?
+# usage time
+#### xlsx     - ovde se ucitavaju raspodele one
+# aspekti
+## poznatost T=0
+#### option 1
+#### option 2
+## broker algoritam
+#### Broker
+#### BrokerPrepareWhenZero
+#### BrokerNoPreparing
+# kriterijumi optimizacije
+## option 1:  ukupno vreme resursa min
+## option 2:  pool size min
+
+############################################
 
 def create_clock(environment):
     while True:
