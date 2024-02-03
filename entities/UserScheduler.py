@@ -66,14 +66,14 @@ class UserScheduler:
 
         self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]'''
 
-        ## Nas nov USAGE_TIME. Za sada hardcoded sa norm raspodelom
-        self.USAGE_TIME = [self.mixdis.rvs(prob=self.prob, size=1,
+        ## Nas nov USAGE_TIME. Za sada hardcoded sa norm i lognorm raspodelom
+        self.USAGE_TIME = self.mixdis.rvs(prob=self.prob, size=math.ceil(sum(self.USERS_NUMBER)),
                                 dist=[stats.norm, stats.norm],
                                 kwargs=(
                                     dict(loc=self.alpha1, scale=np.sqrt(self.beta1)),
-                                    dict(loc=self.alpha2, scale=np.sqrt(self.beta2))
+                                    dict(loc=self.alpha2, scale=np.sqrt(self.alpha2))
                                 )
-                            )for _ in range(math.ceil(sum(self.USERS_NUMBER)))]
+                            )
         self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
         # povecati svaki za neku vrednost
         self.TIME_BETWEEN_LOGINS = [random.expovariate(Properties.EXPONENTIAL_LAMBDA) + 1
