@@ -38,6 +38,10 @@ Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.5,8)
 # SLA kriterijumi
 maxVremeSLA = rnd((0.1, 0.5, 1.5))
 # arrival pattern
+
+print("Choose arrival pattern option (1, 2, 3)")
+Properties.ARRIVAL_PATTERN = int(input())
+
 ## option 1
 ##Properties.USER_COUNT = 300
 ##Properties.NEXT_LOGIN_MEAN = rnd((90,120))

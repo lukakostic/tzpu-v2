@@ -47,6 +47,8 @@ class Properties:
     # GAMMA_75_SHAPE = 0.36
     # GAMMA_75_SCALE = 0.12
 
+    ARRIVAL_PATTERN = 1
+
     @staticmethod
     def get_positive_value_gauss(mean, std):
         value = int(random.gauss(mean, std))
