@@ -39,7 +39,8 @@ class Properties:
 
     EXPONENTIAL_LAMBDA = 5/3
 
-    MINIMUM_USAGE_TIME = 20
+    ##MINIMUM_USAGE_TIME = 20
+    MINIMUM_USAGE_TIME = 0
 
     # GAMMA_25_SHAPE = 7.5
     # GAMMA_25_SCALE = 0.56

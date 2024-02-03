@@ -34,6 +34,7 @@ canvas.pack(side=tk.TOP, expand=False)
 def rnd(tp,idx=None):
     return random.choice(tp) if(idx==None) else tp[idx]
 # Tp
+Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.5,8)
 # SLA kriterijumi
 maxVremeSLA = rnd((0.1, 0.5, 1.5))
 # arrival pattern
