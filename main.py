@@ -38,12 +38,12 @@ def rnd(tp,idx=None):
 maxVremeSLA = rnd((0.1, 0.5, 1.5))
 # arrival pattern
 ## option 1
-Properties.USER_COUNT = 300
-Properties.NEXT_LOGIN_MEAN = rnd((90,120))
-Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
+##Properties.USER_COUNT = 300
+##Properties.NEXT_LOGIN_MEAN = rnd((90,120))
+##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
 
 ## option 2
-##Properties.USER_COUNT = 300
+Properties.USER_COUNT = 300
 #### T = 0
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
 #### T>0
