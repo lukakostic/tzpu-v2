@@ -41,6 +41,28 @@ class UserScheduler:
         if Properties.CONSTANT_USER_COUNT_ENABLED:
             self.USERS_NUMBER = []
             total_users_count = Properties.USER_COUNT
+
+            ## inicijalni udar
+
+            Properties.USERS_PER_LOGIN_MEAN = random.choice((20, 35, 100))
+            Properties.NEXT_LOGIN_MEAN = 0
+            Properties.NEXT_LOGIN_STD = 0
+
+            user_count = Properties.get_positive_value_gauss(Properties.USERS_PER_LOGIN_MEAN,
+                                                             Properties.USERS_PER_LOGIN_STD)
+            if user_count > total_users_count:
+                user_count = total_users_count
+
+            self.USERS_NUMBER.append(user_count)
+            total_users_count -= user_count
+
+            Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
+            Properties.NEXT_LOGIN_MEAN = random.choice((15, 30))
+            Properties.NEXT_LOGIN_STD = 3
+            Properties.NEXT_LOGIN_STD = 3
+
+            ## periodicni manji udari
+
             while total_users_count > 0:
                 user_count = Properties.get_positive_value_gauss(Properties.USERS_PER_LOGIN_MEAN,
                                                                  Properties.USERS_PER_LOGIN_STD)
@@ -147,6 +169,11 @@ class UserScheduler:
         random.shuffle(self.USERS_NUMBER)
         random.shuffle(self.USAGE_TIME)
         random.shuffle(self.TIME_BETWEEN_LOGINS)
+
+        #random.shuffle(self.INTER_ARRIVAL_TIMES[1:])
+        #random.shuffle(self.USERS_NUMBER[1:])
+        #random.shuffle(self.USAGE_TIME[1:])
+        #random.shuffle(self.TIME_BETWEEN_LOGINS[1:])
 
     def examination_date_mod(self):
         # inter arrival times
