@@ -1,3 +1,5 @@
+import csv
+import os
 import random
 import numpy as np
 import math
@@ -81,9 +83,22 @@ class UserScheduler:
                                                                      Properties.USERS_PER_LOGIN_STD)
                                  for _ in range(80)]
 
-        self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
+        '''self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
                                                                         Properties.NEXT_LOGIN_STD)
-                                    for _ in range(sum(self.USERS_NUMBER))]
+                                    for _ in range(sum(self.USERS_NUMBER))]'''
+        ##OVO DOLE JE ZA OPTION 3
+        csv_file_path = os.path.join("LOGS", "random_numbers.csv")
+        def option3_generate_numbers():
+            random_numbers = [random.randint(20, 120) for _ in range(sum(self.USERS_NUMBER))]
+            sorted_numbers = sorted(random_numbers)
+            with open(csv_file_path, mode='w', newline='') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerows(map(lambda x: [x], sorted_numbers))
+
+        option3_generate_numbers()
+        with open(csv_file_path, "r") as csvfile:
+            csv_reader = csv.reader(csvfile)
+            self.INTER_ARRIVAL_TIMES = [int(row[0]) for row in csv_reader]
 
         '''self.USAGE_TIME = [np.random.gamma(Properties.GAMMA_25_SHAPE, Properties.GAMMA_25_SCALE)
                            for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.25))]
@@ -91,17 +106,6 @@ class UserScheduler:
                                 for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.75))])
 
         self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]'''
-
-        ## Nas nov USAGE_TIME. Za sada hardcoded sa norm i lognorm raspodelom
-        '''self.USAGE_TIME = self.mixdis.rvs(prob=self.prob, size=math.ceil(sum(self.USERS_NUMBER)),
-                                dist=[stats.lognorm, stats.weibull_min, stats.norm, stats.norm],
-                                kwargs=(
-                                    dict(loc=0, scale=np.exp(self.values[0]), args=(np.sqrt(self.values[1]),)),
-                                    dict(loc=0, scale=np.exp(self.values[2]), args=(1 / self.values[3],)),
-                                    dict(loc=self.values[4], scale=np.sqrt(self.values[5])),
-                                    dict(loc=self.values[6], scale=np.sqrt(self.values[7]))
-                                )
-                                )'''
 
         def getSet(setIdx):
             ##"set","weight","distribution","alpha","beta"
