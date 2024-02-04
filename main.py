@@ -21,14 +21,25 @@ import json
 import tkinter as tk
 
 import random
+import sys
 
-main = tk.Tk()
-main.title("Simulation")
-main.config(bg="#fff")
-top_frame = tk.Frame(main)
-top_frame.pack(side=tk.TOP, expand=False)
-canvas = tk.Canvas(main, width=1300, height=350, bg="white")
-canvas.pack(side=tk.TOP, expand=False)
+
+SEED = 42
+
+random.seed(SEED)
+
+ui = False
+
+main = None
+graph = None
+if ui:
+    main = tk.Tk()
+    main.title("Simulation")
+    main.config(bg="#fff")
+    top_frame = tk.Frame(main)
+    top_frame.pack(side=tk.TOP, expand=False)
+    canvas = tk.Canvas(main, width=1300, height=350, bg="white")
+    canvas.pack(side=tk.TOP, expand=False)
 
 ############################################
 def rnd(tp,idx=None):
@@ -63,7 +74,7 @@ else:
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
 
 ## option 2
-Properties.USER_COUNT = 300
+Properties.USER_COUNT = 50
 #### T = 0
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
 #### T>0
@@ -90,7 +101,8 @@ Properties.USER_COUNT = 300
 def create_clock(environment):
     while True:
         yield environment.timeout(1)
-        graph.tick(environment.now)
+        if graph:
+            graph.tick(environment.now)
 
 
 def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
@@ -105,15 +117,18 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
 
     while len(user_scheduler.INTER_ARRIVAL_TIMES) > 0 and len(user_scheduler.USERS_NUMBER) > 0:
 
-        # unapred lreirati vektor sa vremenma dolaska, zadrzavanja i broja ljudi koji dodju
+        print("XXXXXXXXXXXXXXX")
+        # unapred kreirati vektor sa vremenma dolaska, zadrzavanja i broja ljudi koji dodju
         next_arrival = user_scheduler.INTER_ARRIVAL_TIMES.pop()
         users_number = user_scheduler.USERS_NUMBER.pop()
 
 
         # Wait for the bus
-        log.next_arrival(next_arrival)
+        if ui:
+            log.next_arrival(next_arrival)
         yield env.timeout(next_arrival)
-        log.arrived(users_number)
+        if ui:
+            log.arrived(users_number)
 
         # self.analytics.register_user_login() below is for reporting purposes only
         database.log_event(EventType.USER_LOGIN.value, None, env.now, users_number)
@@ -124,12 +139,24 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
 
             yield env.timeout(user_scheduler.TIME_BETWEEN_LOGINS.pop())
 
+    print("DONE111 !!!!!!!!!!!!!!!!!")
     env.process(broker.end_process())
-
-    create_window()
     database.writeAll()
     database.clear()
-    # main.destroy()
+    print("DONE !!!!!!!!!!!!!!!!!")
+    print(Properties.RESOURCE_PREPARE_TIME_MEAN)
+    print(Properties.RESOURCE_PREPARE_TIME_STD)
+    print(Properties.USERS_PER_LOGIN_MEAN)
+    print(Properties.NEXT_LOGIN_MEAN)
+    print(Properties.NEXT_LOGIN_STD)
+    
+    input()
+    if ui:
+        create_window()
+    if ui:
+        main.destroy()
+    #else:
+    #    sys.exit()
 
 
 def create_window():
@@ -156,14 +183,17 @@ print(Properties.SIMULATION_UUID)
 analytics = Analytics()
 database = DatabaseUtils()
 database.clear()
-user_scheduler = UserScheduler()
+user_scheduler = UserScheduler(SEED)
 
 user_scheduler.real_mod()
 database.log_simulation_start()
 
-log = DisplayLog(canvas, 5, 20)
-graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
-               analytics.arrivals)
+log = None
+if ui:
+    log = DisplayLog(canvas, 5, 20)
+    graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
+                analytics.arrivals)
+
 resource_provider = ResourceProvider(env)
 if Properties.BROKER_TYPE == 2:
     broker = BrokerPrepareWhenZero(log, resource_provider, user_scheduler, env)
@@ -180,4 +210,5 @@ if Properties.CONSTANT_USER_COUNT_ENABLED:
 else:
     env.run(until=Properties.SIMULATION_DURATION_MINUTES)
 
-main.mainloop()
+if ui:
+    main.mainloop()
