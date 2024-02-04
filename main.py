@@ -42,6 +42,14 @@ maxVremeSLA = rnd((0.1, 0.5, 1.5))
 print("Choose arrival pattern option (1, 2, 3)")
 Properties.ARRIVAL_PATTERN = int(input())
 
+print("Is initial wave known (y/N)")
+y_n = input()
+if y_n == "y" or y_n == "Y":
+    Properties.INITIAL_WAVE_KNOWN = True
+else:
+    Properties.INITIAL_WAVE_KNOWN = False
+
+
 ## option 1
 ##Properties.USER_COUNT = 300
 ##Properties.NEXT_LOGIN_MEAN = rnd((90,120))
@@ -81,11 +89,19 @@ def create_clock(environment):
 def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
     user_id = 1
     next_person_id = 0
+
+    ## ako je poznato T = 0 i intenzitet inicijalnog udara
+
+    if Properties.INITIAL_WAVE_KNOWN:
+        broker.prepare_more_resources(env, user_scheduler.USERS_NUMBER[-1])
+
+
     while len(user_scheduler.INTER_ARRIVAL_TIMES) > 0 and len(user_scheduler.USERS_NUMBER) > 0:
 
         # unapred lreirati vektor sa vremenma dolaska, zadrzavanja i broja ljudi koji dodju
         next_arrival = user_scheduler.INTER_ARRIVAL_TIMES.pop()
         users_number = user_scheduler.USERS_NUMBER.pop()
+
 
         # Wait for the bus
         log.next_arrival(next_arrival)

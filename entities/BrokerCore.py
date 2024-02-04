@@ -90,3 +90,9 @@ class BrokerCore:
     def end_process(self):
         if self.resource_provider.is_all_resource_free():
             yield self.simulation_end
+
+    def prepare_more_resources(self, env: RealtimeEnvironment, count: int):
+        resource_count = self.resource_provider.get_resource_count()
+        number_to_add = count - resource_count
+        for _ in range(number_to_add):
+            env.process(self.prepare_one_resource(env))
