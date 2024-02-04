@@ -15,6 +15,7 @@ from utils.Graphs import Graphs
 from utils.DatabaseUtils import DatabaseUtils
 from utils.DisplayLog import DisplayLog
 from utils.Proprerties import Properties
+from utils.Options import Options
 
 import simpy
 import json
@@ -38,6 +39,7 @@ user_scheduler = None
 database = None
 analytics = None
 canvas = None
+log = None
 if ui:
     main = tk.Tk()
     main.title("Simulation")
@@ -104,6 +106,9 @@ Properties.USER_COUNT = 300
 
 ############################################
 
+database = DatabaseUtils()
+database.clear()
+
 def create_clock(environment):
     while True:
         yield environment.timeout(1)
@@ -112,6 +117,9 @@ def create_clock(environment):
 
 
 def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
+    Properties.SIMULATION_UUID = str(uuid.uuid4())
+    print(Properties.SIMULATION_UUID)
+
     user_id = 1
     next_person_id = 0
 
@@ -135,7 +143,7 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
     database.WriteImportant(user_scheduler.USERS_NUMBER,"USERS_NUMBER ")
     database.WriteImportant(user_scheduler.USAGE_TIME,"USAGE_TIME ")
     database.WriteImportant(user_scheduler.TIME_BETWEEN_LOGINS,"TIME_BETWEEN_LOGINS ")
-    
+
     ## ako je poznato T = 0 i intenzitet inicijalnog udara
 
     if Properties.INITIAL_WAVE_KNOWN:
@@ -176,7 +184,7 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
     database.writeAll()
     database.clear()
     print("DONE !!!!!!!!!!!!!!!!!")
-    
+
     if ui:
         create_window()
         input()
@@ -185,7 +193,7 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
     sys.exit()
 
 
-def create_window():
+def create_window(broker):
     t = tk.Toplevel(main)
     t.wm_title("Finished")
     l = tk.Label(t, text=f"Simulation uuid: {Properties.SIMULATION_UUID} \n"
@@ -202,41 +210,68 @@ def close():
     main.destroy()
 
 
-env = simpy.rt.RealtimeEnvironment(factor=(1.0 / Properties.TIME_SPEEDUP), strict=False)
-Properties.SIMULATION_UUID = str(uuid.uuid4())
-print(Properties.SIMULATION_UUID)
+def test_option():
+    env = simpy.rt.RealtimeEnvironment(factor=(1.0 / Properties.TIME_SPEEDUP), strict=False)
 
-analytics = Analytics()
-database = DatabaseUtils()
-database.clear()
-user_scheduler = UserScheduler()
+    analytics = Analytics()
 
-#database.WriteImportant(Properties.SIMULATION_UUID,"\n\nsimulacija: ")
+    user_scheduler = UserScheduler()
 
-user_scheduler.real_mod()
-database.log_simulation_start()
+    user_scheduler.real_mod()
+    database.log_simulation_start()
 
-log = None
-if ui:
-    log = DisplayLog(canvas, 5, 20)
-graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
-            analytics.arrivals)
+    log = None
+    if ui:
+        log = DisplayLog(canvas, 5, 20)
+        graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
+                       analytics.arrivals)
 
-resource_provider = ResourceProvider(env)
-if Properties.BROKER_TYPE == 2:
-    broker = BrokerPrepareWhenZero(log, resource_provider, user_scheduler, env)
-elif Properties.BROKER_TYPE == 3:
-    broker = BrokerNoPreparing(log, resource_provider, user_scheduler, env)
-else:
-    broker = Broker(log, resource_provider, user_scheduler, env)
+    resource_provider = ResourceProvider(env)
+    if Properties.BROKER_TYPE == 2:
+        broker = BrokerPrepareWhenZero(log, resource_provider, user_scheduler, env)
+    elif Properties.BROKER_TYPE == 3:
+        broker = BrokerNoPreparing(log, resource_provider, user_scheduler, env)
+    else:
+        broker = Broker(log, resource_provider, user_scheduler, env)
 
-process = env.process(start_simulation(env, broker, user_scheduler))
-env.process(create_clock(env))
+    process = env.process(start_simulation(env, broker, user_scheduler))
+    env.process(create_clock(env))
 
-if Properties.CONSTANT_USER_COUNT_ENABLED:
-    env.run()
-else:
-    env.run(until=Properties.SIMULATION_DURATION_MINUTES)
+    if Properties.CONSTANT_USER_COUNT_ENABLED:
+        env.run()
+    else:
+        env.run(until=Properties.SIMULATION_DURATION_MINUTES)
 
-if ui:
-    main.mainloop()
+    if ui:
+        main.mainloop()
+
+pocetne_vrednosti = [0, 0, 0, 0, 0, 0, True]
+
+for tp_mean_opt in Options.RESOURCE_PREPARE_TIME_MEAN_OPTS[pocetne_vrednosti[0]:]:
+    for tp_std_opt in Options.RESOURCE_PREPARE_TIME_STD_OPTS[pocetne_vrednosti[1]:]:
+        for sla_opt in Options.SLA_OPTS[pocetne_vrednosti[2]:]:
+            for arrival_pat in range(pocetne_vrednosti[3], 3):
+                Properties.ARRIVAL_PATTERN = arrival_pat
+                for broker_type in range(pocetne_vrednosti[4], 3):
+                    Properties.BROKER_TYPE = broker_type
+                    for set_raspodela in range(pocetne_vrednosti[5], 9):
+                        Properties.SET_RASPOREDA = set_raspodela
+                        if Properties.ARRIVAL_PATTERN == 2:
+                            if pocetne_vrednosti[6]:
+                                Properties.INITIAL_WAVE_KNOWN = True
+                                test_option()
+                            Properties.INITIAL_WAVE_KNOWN = False
+                            test_option()
+                        else:
+                            test_option()
+                        pocetne_vrednosti[6] = True
+                    pocetne_vrednosti[5] = 0
+                pocetne_vrednosti[4] = 0
+            pocetne_vrednosti[3] = 0
+        pocetne_vrednosti[2] = 0
+    pocetne_vrednosti[1] = 0
+
+
+
+
+
