@@ -34,6 +34,10 @@ ui = False    #ovde dal hoces UI
 
 main = None
 graph = None
+user_scheduler = None
+database = None
+analytics = None
+canvas = None
 if ui:
     main = tk.Tk()
     main.title("Simulation")
@@ -76,7 +80,7 @@ else:
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
 
 ## option 2
-Properties.USER_COUNT = 50
+Properties.USER_COUNT = 300
 #### T = 0
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
 #### T>0
@@ -103,7 +107,7 @@ Properties.USER_COUNT = 50
 def create_clock(environment):
     while True:
         yield environment.timeout(1)
-        if graph:
+        if ui and graph:
             graph.tick(environment.now)
 
 
@@ -111,6 +115,27 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
     user_id = 1
     next_person_id = 0
 
+    database.WriteImportant(Properties.SLA,"SLA ")
+    database.WriteImportant(Properties.ARRIVAL_PATTERN,"ARRIVAL_PATTERN ")
+    database.WriteImportant(Properties.INITIAL_WAVE_KNOWN,"INITIAL_WAVE_KNOWN ")
+    database.WriteImportant(Properties.BROKER_TYPE,"BROKER_TYPE ")
+    database.WriteImportant(Properties.READY_COUNT,"READY_COUNT ")
+    database.WriteImportant(Properties.MAX_AVAILABLE_RESOURCES,"MAX_AVAILABLE_RESOURCES ")
+    database.WriteImportant(Properties.CRITICAL_UTILISATION_PERCENT,"CRITICAL_UTILISATION_PERCENT ")
+    database.WriteImportant(Properties.RESOURCE_ADD_NUMBER,"RESOURCE_ADD_NUMBER ")
+    database.WriteImportant(Properties.SET_RASPOREDA,"SET_RASPOREDA ")
+    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_MEAN,"RESOURCE_PREPARE_TIME_MEAN ")
+    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_MEAN,"RESOURCE_PREPARE_TIME_MEAN ")
+    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_STD,"RESOURCE_PREPARE_TIME_STD ")
+    database.WriteImportant(Properties.USERS_PER_LOGIN_MEAN,"USERS_PER_LOGIN_MEAN ")
+    database.WriteImportant(Properties.NEXT_LOGIN_MEAN,"NEXT_LOGIN_MEAN ")
+    database.WriteImportant(Properties.NEXT_LOGIN_STD,"NEXT_LOGIN_STD ")
+    database.WriteImportant(Properties.USER_COUNT,"USER_COUNT ")
+    database.WriteImportant(user_scheduler.INTER_ARRIVAL_TIMES,"INTER_ARRIVAL_TIMES ")
+    database.WriteImportant(user_scheduler.USERS_NUMBER,"USERS_NUMBER ")
+    database.WriteImportant(user_scheduler.USAGE_TIME,"USAGE_TIME ")
+    database.WriteImportant(user_scheduler.TIME_BETWEEN_LOGINS,"TIME_BETWEEN_LOGINS ")
+    
     ## ako je poznato T = 0 i intenzitet inicijalnog udara
 
     if Properties.INITIAL_WAVE_KNOWN:
@@ -138,27 +163,26 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
             user = User("user", user_id)
             user_id += 1
             env.process(broker.user_login(user))
+            print("USER_--------------------")
 
             yield env.timeout(user_scheduler.TIME_BETWEEN_LOGINS.pop())
 
     print("DONE111 !!!!!!!!!!!!!!!!!")
+    database.WriteImportant(graph.avg_wait(graph.utilization),"avg_utilization ")
+    database.WriteImportant(graph.avg_wait(graph.wait_for_resource),"avg_wait ")
+    database.WriteImportant(broker.analytics.SLA_broke,"SLA_broke ")
+
     env.process(broker.end_process())
     database.writeAll()
     database.clear()
     print("DONE !!!!!!!!!!!!!!!!!")
-    print(Properties.RESOURCE_PREPARE_TIME_MEAN)
-    print(Properties.RESOURCE_PREPARE_TIME_STD)
-    print(Properties.USERS_PER_LOGIN_MEAN)
-    print(Properties.NEXT_LOGIN_MEAN)
-    print(Properties.NEXT_LOGIN_STD)
     
-    input()
     if ui:
         create_window()
-    if ui:
+        input()
         main.destroy()
     #else:
-    #    sys.exit()
+    sys.exit()
 
 
 def create_window():
@@ -187,14 +211,16 @@ database = DatabaseUtils()
 database.clear()
 user_scheduler = UserScheduler()
 
+#database.WriteImportant(Properties.SIMULATION_UUID,"\n\nsimulacija: ")
+
 user_scheduler.real_mod()
 database.log_simulation_start()
 
 log = None
 if ui:
     log = DisplayLog(canvas, 5, 20)
-    graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
-                analytics.arrivals)
+graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
+            analytics.arrivals)
 
 resource_provider = ResourceProvider(env)
 if Properties.BROKER_TYPE == 2:

@@ -17,27 +17,28 @@ class Graphs:
         self.wait_for_resource = wait_for_resource
         self.arrivals = arrivals
 
-        self.train = canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill="#fff")
+        if self.canvas:
+            self.train = canvas.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill="#fff")
 
-        self.time = self.create_text_canvas_minutes("Time = " + str(round(self.time, 1)), 10, 10)
-        self.avg_utilization = self.create_text_canvas(
-            "Avg. utilization  = " + str(self.avg_wait(self.utilization)) + "%", 10, 30)
-        self.avg_resource_wait = self.create_text_canvas_minutes(
-            "Avg. wait for resource = " + str(self.avg_wait(self.wait_for_resource)), 10, 50)
+            self.time = self.create_text_canvas_minutes("Time = " + str(round(self.time, 1)), 10, 10)
+            self.avg_utilization = self.create_text_canvas(
+                "Avg. utilization  = " + str(self.avg_wait(self.utilization)) + "%", 10, 30)
+            self.avg_resource_wait = self.create_text_canvas_minutes(
+                "Avg. wait for resource = " + str(self.avg_wait(self.wait_for_resource)), 10, 50)
 
-        self.figure = plt.Figure(figsize=(2, 2), dpi=72)
+            self.figure = plt.Figure(figsize=(2, 2), dpi=72)
 
-        self.data_plot = FigureCanvasTkAgg(self.figure, master=main)
-        self.data_plot.get_tk_widget().config(height=400)
-        self.data_plot.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+            self.data_plot = FigureCanvasTkAgg(self.figure, master=main)
+            self.data_plot.get_tk_widget().config(height=400)
+            self.data_plot.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
-        self.a3 = self.figure.add_subplot(121)
-        self.a3.plot()
-        self.a1 = self.figure.add_subplot(222)
-        self.a1.plot()
-        self.a2 = self.figure.add_subplot(224)
-        self.a2.plot()
-        self.canvas.update()
+            self.a3 = self.figure.add_subplot(121)
+            self.a3.plot()
+            self.a1 = self.figure.add_subplot(222)
+            self.a1.plot()
+            self.a2 = self.figure.add_subplot(224)
+            self.a2.plot()
+            self.canvas.update()
 
     @staticmethod
     def avg_wait(raw_waits):

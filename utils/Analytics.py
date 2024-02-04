@@ -49,6 +49,8 @@ class Analytics:
 
     def register_user_waiting(self, queue_begin, queue_end, user: User):
         wait = queue_end - queue_begin
+        print(f"USER WAIT [{wait}]")
+        print(wait)
         self.register_wait_for_getting(queue_end, wait)
         if wait > Properties.SLA:
             self.SLA_broke += 1

@@ -168,8 +168,8 @@ class UserScheduler:
                 dist=list(map(lambda x: modeli[x[1]], set_)),
                 kwargs=tuple(map(model2dict, set_))
             )
-        pick_index=random.choice((0,1,2,3,4,5,6,7,8))
-        self.USAGE_TIME = self.mixdis.rvs(**getSet(pick_index))
+        Properties.SET_RASPOREDA=random.choice((0,1,2,3,4,5,6,7,8))
+        self.USAGE_TIME = self.mixdis.rvs(**getSet(Properties.SET_RASPOREDA))
 
         self.USAGE_TIME = [x + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
         # povecati svaki za neku vrednost

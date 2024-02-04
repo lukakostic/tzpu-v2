@@ -4,13 +4,15 @@ import pandas as pd
 #from MySQLdb._exceptions import Error
 
 from utils.Proprerties import Properties
+from datetime import datetime
 
 
 class DatabaseUtils:
     fileWrites = {
         "LOGS/Events.csv":"",
         "LOGS/Simulation.csv":"",
-        "LOGS/Properties.csv":""
+        "LOGS/Properties.csv":"",
+        "LOGS/Important.txt":""
     }
     def __init__(self):
         pass
@@ -18,14 +20,20 @@ class DatabaseUtils:
         DatabaseUtils.fileWrites = {
             "LOGS/Events.csv":"",
             "LOGS/Simulation.csv":"",
-            "LOGS/Properties.csv":""
+            "LOGS/Properties.csv":"",
+            "LOGS/Important.txt":""
         }
     def WriteEvent(self, event_type:str,simulation_uuid:str,user_id:str,timestamp:str,duration:str):
         self.write("LOGS/Events.csv",f"{simulation_uuid}, {event_type}, User:{user_id}, Time:{timestamp}, Value:{duration}\n")
     def WriteSimulation(self, simulation_uuid:str):
         self.write("LOGS/Simulation.csv",f"{simulation_uuid}\n")
+        self.write("LOGS/Important.txt",f"\n{simulation_uuid}   , {datetime.now()}\n")
     def WriteProperties(self, simulation_uuid:str, type_:str, value:str):
         self.write("LOGS/Properties.csv",f"{simulation_uuid}, {type_}, {value}\n")
+        
+    def WriteImportant(self, txt:str, preTxt:str="",toPrint=False):
+        self.write("LOGS/Important.txt",f"{preTxt}{txt}\n")
+        if toPrint: print(f"{preTxt}{txt}")
         
     def write(self, file,str_):
         #m = {'E':"Events.csv",'S':"Simulation.csv",'P':"Properties.csv"}
@@ -38,10 +46,10 @@ class DatabaseUtils:
         #    myfile.write(str_)
     def writeAll(self):
         print("EEEEEEEEEEEEEEEEEEEEEEE")
-        print(self.fileWrites["LOGS/Events.csv"])
+        #print(self.fileWrites["LOGS/Events.csv"])
         for file,str_ in self.fileWrites.items():
             print("#######################")
-            print(str_)
+            #print(str_)
             with open(file, "a") as myfile:
                 myfile.write("\n" + str_)
     
