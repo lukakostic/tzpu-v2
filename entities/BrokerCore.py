@@ -9,6 +9,7 @@ from entities.UserScheduler import UserScheduler
 from utils.Analytics import Analytics
 from utils.Proprerties import Properties
 import random
+import numpy as np
 
 
 class BrokerCore:
@@ -33,9 +34,10 @@ class BrokerCore:
 
         elif self.resource_provider.get_resource_ready_count() == 0:
             # nema slobodnih i pristupa se kreiranju novih
-            yield self.env.timeout(
-                self.get_positive_value_gauss(Properties.RESOURCE_PREPARE_TIME_MEAN,
+            yield self.env.timeout(self.get_normal(Properties.RESOURCE_PREPARE_TIME_MEAN,
                                               Properties.RESOURCE_PREPARE_TIME_STD))
+            '''self.get_positive_value_gauss(Properties.RESOURCE_PREPARE_TIME_MEAN,
+                                              Properties.RESOURCE_PREPARE_TIME_STD))'''
 
             self.prepare_new_resources(self.env)
             resource = self.resource_provider.get_resource()
@@ -77,12 +79,22 @@ class BrokerCore:
             value = mean
         return value
 
+    @staticmethod
+    def get_normal(mean, std):
+        value = int(np.random.normal(mean, std))
+        if value <= 0:
+            value = mean
+        return value
+
+
     def prepare_one_resource(self, env):
         with self.resource_provider.worker.request() as worker:
             yield worker
 
-            yield env.timeout(self.get_positive_value_gauss(Properties.RESOURCE_PREPARE_TIME_MEAN,
-                                                            Properties.RESOURCE_PREPARE_TIME_STD))
+            yield env.timeout(self.get_normal(Properties.RESOURCE_PREPARE_TIME_MEAN,
+                                              Properties.RESOURCE_PREPARE_TIME_STD))
+            '''self.get_positive_value_gauss(Properties.RESOURCE_PREPARE_TIME_MEAN,
+                                                            Properties.RESOURCE_PREPARE_TIME_STD))'''
 
             self.resource_provider.prepare_new_resource()
             self.analytics.register_new_resource_prepared(self.resource_provider.get_resource_count(), env.now)

@@ -1,3 +1,5 @@
+import csv
+import os
 import random
 import numpy as np
 import math
@@ -38,7 +40,8 @@ class UserScheduler:
 
     def real_mod(self):
         # inter arrival times
-        if Properties.CONSTANT_USER_COUNT_ENABLED:
+        #if Properties.CONSTANT_USER_COUNT_ENABLED:
+        if True:
             self.USERS_NUMBER = []
             total_users_count = Properties.USER_COUNT
 
@@ -57,9 +60,8 @@ class UserScheduler:
                 self.USERS_NUMBER.append(user_count)
                 total_users_count -= user_count
 
-                Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
+                ##Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
                 Properties.NEXT_LOGIN_MEAN = random.choice((15, 30))
-                Properties.NEXT_LOGIN_STD = 3
                 Properties.NEXT_LOGIN_STD = 3
 
             elif Properties.ARRIVAL_PATTERN == 1:
@@ -80,10 +82,25 @@ class UserScheduler:
             self.USERS_NUMBER = [Properties.get_positive_value_gauss(Properties.USERS_PER_LOGIN_MEAN,
                                                                      Properties.USERS_PER_LOGIN_STD)
                                  for _ in range(80)]
+        if Properties.ARRIVAL_PATTERN == 3:
+            csv_file_path = os.path.join("LOGS", "random_numbers.csv")
 
-        self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
+            def option3_generate_numbers():
+                random_numbers = [random.randint(20, 120) for _ in range(sum(self.USERS_NUMBER))]
+                sorted_numbers = sorted(random_numbers)
+                with open(csv_file_path, mode='w', newline='') as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerows(map(lambda x: [x], sorted_numbers))
+
+            option3_generate_numbers()
+            with open(csv_file_path, "r") as csvfile:
+                csv_reader = csv.reader(csvfile)
+                self.INTER_ARRIVAL_TIMES = [int(row[0]) for row in csv_reader]
+        else:
+            self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
                                                                         Properties.NEXT_LOGIN_STD)
-                                    for _ in range(sum(self.USERS_NUMBER))]
+                                        for _ in range(sum(self.USERS_NUMBER))]
+
 
         '''self.USAGE_TIME = [np.random.gamma(Properties.GAMMA_25_SHAPE, Properties.GAMMA_25_SCALE)
                            for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.25))]
@@ -91,17 +108,6 @@ class UserScheduler:
                                 for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.75))])
 
         self.USAGE_TIME = [(x * 268) + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]'''
-
-        ## Nas nov USAGE_TIME. Za sada hardcoded sa norm i lognorm raspodelom
-        '''self.USAGE_TIME = self.mixdis.rvs(prob=self.prob, size=math.ceil(sum(self.USERS_NUMBER)),
-                                dist=[stats.lognorm, stats.weibull_min, stats.norm, stats.norm],
-                                kwargs=(
-                                    dict(loc=0, scale=np.exp(self.values[0]), args=(np.sqrt(self.values[1]),)),
-                                    dict(loc=0, scale=np.exp(self.values[2]), args=(1 / self.values[3],)),
-                                    dict(loc=self.values[4], scale=np.sqrt(self.values[5])),
-                                    dict(loc=self.values[6], scale=np.sqrt(self.values[7]))
-                                )
-                                )'''
 
         def getSet(setIdx):
             ##"set","weight","distribution","alpha","beta"
@@ -161,8 +167,8 @@ class UserScheduler:
                 dist=list(map(lambda x: modeli[x[1]], set_)),
                 kwargs=tuple(map(model2dict, set_))
             )
-
-        self.USAGE_TIME = self.mixdis.rvs(**getSet(1))
+        pick_index=random.choice((0,1,2,3,4,5,6,7,8))
+        self.USAGE_TIME = self.mixdis.rvs(**getSet(pick_index))
 
         self.USAGE_TIME = [x + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
         # povecati svaki za neku vrednost

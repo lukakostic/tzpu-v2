@@ -21,11 +21,11 @@ class DatabaseUtils:
             "LOGS/Properties.csv":""
         }
     def WriteEvent(self, event_type:str,simulation_uuid:str,user_id:str,timestamp:str,duration:str):
-        self.write("LOGS/Events.csv",f"{event_type},{simulation_uuid},{user_id},{timestamp},{duration}\n")
+        self.write("LOGS/Events.csv",f"{simulation_uuid}, {event_type}, User:{user_id}, Time:{timestamp}, Value:{duration}\n")
     def WriteSimulation(self, simulation_uuid:str):
         self.write("LOGS/Simulation.csv",f"{simulation_uuid}\n")
     def WriteProperties(self, simulation_uuid:str, type_:str, value:str):
-        self.write("LOGS/Properties.csv",f"{simulation_uuid},{type_},{value}\n")
+        self.write("LOGS/Properties.csv",f"{simulation_uuid}, {type_}, {value}\n")
         
     def write(self, file,str_):
         #m = {'E':"Events.csv",'S':"Simulation.csv",'P':"Properties.csv"}
@@ -43,7 +43,7 @@ class DatabaseUtils:
             print("#######################")
             print(str_)
             with open(file, "a") as myfile:
-                myfile.write(str_)
+                myfile.write("\n" + str_)
     
     def log_event(self, event_type, user_id, time, duration):
         print("EVENT")

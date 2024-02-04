@@ -32,10 +32,10 @@ class Properties:
     RESOURCE_ADD_NUMBER = 1
     RESOURCE_ADD_RATE = 3
 
-    GAMMA_25_SHAPE = 0.181
-    GAMMA_25_SCALE = 0.56
-    GAMMA_75_SHAPE = 0.36
-    GAMMA_75_SCALE = 0.12
+    ##GAMMA_25_SHAPE = 0.181
+    ##GAMMA_25_SCALE = 0.56
+    ##GAMMA_75_SHAPE = 0.36
+    ##GAMMA_75_SCALE = 0.12
 
     EXPONENTIAL_LAMBDA = 5/3
 
@@ -47,8 +47,10 @@ class Properties:
     # GAMMA_75_SHAPE = 0.36
     # GAMMA_75_SCALE = 0.12
 
+    SLA = 1.0
     ARRIVAL_PATTERN = 1
     INITIAL_WAVE_KNOWN = True
+    BROKER_TYPE = 1
 
     @staticmethod
     def get_positive_value_gauss(mean, std):
