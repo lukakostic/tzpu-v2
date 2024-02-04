@@ -11,8 +11,7 @@ from statsmodels.distributions.mixture_rvs import MixtureDistribution
 
 
 class UserScheduler:
-    def __init__(self,SEED):
-        np.random.seed(seed=SEED)
+    def __init__(self):
         self.INTER_ARRIVAL_TIMES = []
         self.USERS_NUMBER = []
         self.USAGE_TIME = []

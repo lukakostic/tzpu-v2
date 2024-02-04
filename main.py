@@ -20,6 +20,7 @@ import simpy
 import json
 import tkinter as tk
 
+import numpy as np
 import random
 import sys
 
@@ -27,8 +28,9 @@ import sys
 SEED = 42
 
 random.seed(SEED)
+np.random.seed(seed=SEED)
 
-ui = False
+ui = False    #ovde dal hoces UI
 
 main = None
 graph = None
@@ -183,7 +185,7 @@ print(Properties.SIMULATION_UUID)
 analytics = Analytics()
 database = DatabaseUtils()
 database.clear()
-user_scheduler = UserScheduler(SEED)
+user_scheduler = UserScheduler()
 
 user_scheduler.real_mod()
 database.log_simulation_start()
