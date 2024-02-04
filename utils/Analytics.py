@@ -4,7 +4,7 @@ from collections import defaultdict
 from entities.EventType import EventType
 from entities.User import User
 from utils.DatabaseUtils import DatabaseUtils
-
+from utils.Proprerties import Properties
 
 class Analytics:
 
@@ -14,6 +14,7 @@ class Analytics:
         self.total_user_count = 0
         self.users_served_count = 0
         self.utilization = 0
+        self.SLA_broke = 0
 
     arrivals = defaultdict(lambda: 0)
     utilization_percent = defaultdict(lambda: [])
@@ -49,6 +50,11 @@ class Analytics:
     def register_user_waiting(self, queue_begin, queue_end, user: User):
         wait = queue_end - queue_begin
         self.register_wait_for_getting(queue_end, wait)
+        if wait > Properties.SLA:
+            self.SLA_broke += 1
+            print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA}!")
+            print(f"SLA was broken {self.SLA_broke} times during this simulation")
+            self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA)
         print(f"User({user.user_id}) waited {wait} minutes")
         if self.log_to_database:
             self.database.log_event(EventType.USER_WAIT.value, user.user_id, queue_end, wait)

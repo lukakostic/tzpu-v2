@@ -40,7 +40,8 @@ class UserScheduler:
 
     def real_mod(self):
         # inter arrival times
-        if Properties.CONSTANT_USER_COUNT_ENABLED:
+        #if Properties.CONSTANT_USER_COUNT_ENABLED:
+        if True:
             self.USERS_NUMBER = []
             total_users_count = Properties.USER_COUNT
 
@@ -59,7 +60,7 @@ class UserScheduler:
                 self.USERS_NUMBER.append(user_count)
                 total_users_count -= user_count
 
-                Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
+                ##Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
                 Properties.NEXT_LOGIN_MEAN = random.choice((15, 30))
                 Properties.NEXT_LOGIN_STD = 3
 

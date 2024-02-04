@@ -37,7 +37,7 @@ def rnd(tp,idx=None):
 Properties.RESOURCE_PREPARE_TIME_MEAN = random.uniform(0.5,8)
 Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.1,0.3)
 # SLA kriterijumi
-maxVremeSLA = rnd((0.1, 0.5, 1.5))
+Properties.SLA = rnd((0.1, 0.5, 1, 1.5))
 # arrival pattern
 
 print("Choose arrival pattern option (1, 2, 3)")
@@ -122,7 +122,8 @@ def create_window():
     l = tk.Label(t, text=f"Simulation uuid: {Properties.SIMULATION_UUID} \n"
     # f"Total users: {sum(user_scheduler.USERS_NUMBER)} \n"
                          f"Utilization: {broker.analytics.utilization} \n"
-                         f"Resource count: {broker.resource_provider.get_resource_count()}")
+                         f"Resource count: {broker.resource_provider.get_resource_count()}\n"
+                         f"SLA brakes: {broker.analytics.SLA_broke}")
     l.pack(side="top", fill="both", expand=True, padx=10, pady=10)
     button = tk.Button(t, text="Close", command=close)
     button.pack(side="top", padx=10, pady=10)
