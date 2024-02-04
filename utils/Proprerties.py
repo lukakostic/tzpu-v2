@@ -17,6 +17,8 @@ class Properties:
     USERS_PER_LOGIN_MEAN = 20
     USERS_PER_LOGIN_STD = 3
 
+    SET_RASPOREDA = -1 ## dodeli se u user scheduler
+
     ####### Sledeca 4 mi optimizujemo (menjamo):
     READY_COUNT = 10  # koliko resursa spremno na startu
     MAX_AVAILABLE_RESOURCES = 150 # koliko max imamo resursa available
