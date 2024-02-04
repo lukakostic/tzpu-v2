@@ -48,6 +48,7 @@ class UserScheduler:
             ## inicijalni udar
 
             if Properties.ARRIVAL_PATTERN == 2:
+
                 Properties.USERS_PER_LOGIN_MEAN = random.choice((20, 35, 100))
                 Properties.NEXT_LOGIN_MEAN = 0
                 Properties.NEXT_LOGIN_STD = 0
@@ -57,10 +58,11 @@ class UserScheduler:
                 if user_count > total_users_count:
                     user_count = total_users_count
 
+
                 self.USERS_NUMBER.append(user_count)
                 total_users_count -= user_count
 
-                ##Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
+                Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
                 Properties.NEXT_LOGIN_MEAN = random.choice((15, 30))
                 Properties.NEXT_LOGIN_STD = 3
 
