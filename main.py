@@ -34,13 +34,20 @@ canvas.pack(side=tk.TOP, expand=False)
 def rnd(tp,idx=None):
     return random.choice(tp) if(idx==None) else tp[idx]
 # Tp
-Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.5,8)
+Properties.RESOURCE_PREPARE_TIME_MEAN = random.uniform(0.5,8)
+Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.1,0.3)
 # SLA kriterijumi
 maxVremeSLA = rnd((0.1, 0.5, 1.5))
 # arrival pattern
 
 print("Choose arrival pattern option (1, 2, 3)")
 Properties.ARRIVAL_PATTERN = int(input())
+
+print("Choose broker option (1, 2, 3) "
+      "1=Broker(CriticalUserPercent) "
+      "2=PrepareWhenZero "
+      "3=NoPreparing")
+Properties.BROKER_TYPE = int(input())
 
 ## option 1
 ##Properties.USER_COUNT = 300
@@ -141,10 +148,12 @@ log = DisplayLog(canvas, 5, 20)
 graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
                analytics.arrivals)
 resource_provider = ResourceProvider(env)
-
-broker = BrokerPrepareWhenZero(log, resource_provider, user_scheduler, env)
-# broker = BrokerNoPreparing(log, resource_provider, user_scheduler, env)
-# broker = Broker(log, resource_provider, user_scheduler, env)
+if Properties.BROKER_TYPE == 2:
+    broker = BrokerPrepareWhenZero(log, resource_provider, user_scheduler, env)
+elif Properties.BROKER_TYPE == 3:
+    broker = BrokerNoPreparing(log, resource_provider, user_scheduler, env)
+else:
+    broker = Broker(log, resource_provider, user_scheduler, env)
 
 process = env.process(start_simulation(env, broker, user_scheduler))
 env.process(create_clock(env))

@@ -62,7 +62,6 @@ class UserScheduler:
                 Properties.USERS_PER_LOGIN_MEAN = random.choice((3, 5, 8))
                 Properties.NEXT_LOGIN_MEAN = random.choice((15, 30))
                 Properties.NEXT_LOGIN_STD = 3
-                Properties.NEXT_LOGIN_STD = 3
 
             elif Properties.ARRIVAL_PATTERN == 1:
                 Properties.NEXT_LOGIN_MEAN = random.choice((90, 120))
@@ -82,23 +81,25 @@ class UserScheduler:
             self.USERS_NUMBER = [Properties.get_positive_value_gauss(Properties.USERS_PER_LOGIN_MEAN,
                                                                      Properties.USERS_PER_LOGIN_STD)
                                  for _ in range(80)]
+        if Properties.ARRIVAL_PATTERN == 3:
+            csv_file_path = os.path.join("LOGS", "random_numbers.csv")
 
-        '''self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
+            def option3_generate_numbers():
+                random_numbers = [random.randint(20, 120) for _ in range(sum(self.USERS_NUMBER))]
+                sorted_numbers = sorted(random_numbers)
+                with open(csv_file_path, mode='w', newline='') as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerows(map(lambda x: [x], sorted_numbers))
+
+            option3_generate_numbers()
+            with open(csv_file_path, "r") as csvfile:
+                csv_reader = csv.reader(csvfile)
+                self.INTER_ARRIVAL_TIMES = [int(row[0]) for row in csv_reader]
+        else:
+            self.INTER_ARRIVAL_TIMES = [Properties.get_positive_value_gauss(Properties.NEXT_LOGIN_MEAN,
                                                                         Properties.NEXT_LOGIN_STD)
-                                    for _ in range(sum(self.USERS_NUMBER))]'''
-        ##OVO DOLE JE ZA OPTION 3
-        csv_file_path = os.path.join("LOGS", "random_numbers.csv")
-        def option3_generate_numbers():
-            random_numbers = [random.randint(20, 120) for _ in range(sum(self.USERS_NUMBER))]
-            sorted_numbers = sorted(random_numbers)
-            with open(csv_file_path, mode='w', newline='') as csv_file:
-                csv_writer = csv.writer(csv_file)
-                csv_writer.writerows(map(lambda x: [x], sorted_numbers))
+                                        for _ in range(sum(self.USERS_NUMBER))]
 
-        option3_generate_numbers()
-        with open(csv_file_path, "r") as csvfile:
-            csv_reader = csv.reader(csvfile)
-            self.INTER_ARRIVAL_TIMES = [int(row[0]) for row in csv_reader]
 
         '''self.USAGE_TIME = [np.random.gamma(Properties.GAMMA_25_SHAPE, Properties.GAMMA_25_SCALE)
                            for _ in range(math.ceil(sum(self.USERS_NUMBER) * 0.25))]
@@ -165,8 +166,8 @@ class UserScheduler:
                 dist=list(map(lambda x: modeli[x[1]], set_)),
                 kwargs=tuple(map(model2dict, set_))
             )
-
-        self.USAGE_TIME = self.mixdis.rvs(**getSet(1))
+        pick_index=random.choice((0,1,2,3,4,5,6,7,8))
+        self.USAGE_TIME = self.mixdis.rvs(**getSet(pick_index))
 
         self.USAGE_TIME = [x + Properties.MINIMUM_USAGE_TIME for x in self.USAGE_TIME]
         # povecati svaki za neku vrednost
