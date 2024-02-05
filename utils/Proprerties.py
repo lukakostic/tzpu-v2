@@ -5,7 +5,7 @@ from builtins import staticmethod
 
 class Properties:
     SIMULATION_UUID = 0
-    TIME_SPEEDUP = 2000000000
+    TIME_SPEEDUP = 2000000
     SIMULATION_DURATION_MINUTES = 300
 
     CONSTANT_USER_COUNT_ENABLED = True
@@ -49,7 +49,10 @@ class Properties:
     # GAMMA_75_SHAPE = 0.36
     # GAMMA_75_SCALE = 0.12
 
-    SLA = 1.0
+    SLA1 = 0.1
+    SLA2 = 0.5
+    SLA3 = 1.0
+    SLA4 = 1.5
     ARRIVAL_PATTERN = 1
     INITIAL_WAVE_KNOWN = True
     BROKER_TYPE = 1

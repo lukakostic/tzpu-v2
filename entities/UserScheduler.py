@@ -189,12 +189,12 @@ class UserScheduler:
             random.shuffle(self.USAGE_TIME)
             random.shuffle(self.TIME_BETWEEN_LOGINS)
         
-        print("#####################################")
-        print(self.INTER_ARRIVAL_TIMES)
-        print(self.USERS_NUMBER)
-        print(self.USAGE_TIME)
-        print(self.TIME_BETWEEN_LOGINS)
-        print("#####################################")
+        # print("#####################################")
+        # print(self.INTER_ARRIVAL_TIMES)
+        # print(self.USERS_NUMBER)
+        # print(self.USAGE_TIME)
+        # print(self.TIME_BETWEEN_LOGINS)
+        # print("#####################################")
 
     def examination_date_mod(self):
         # inter arrival times

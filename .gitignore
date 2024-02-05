@@ -2,3 +2,5 @@
 visualize.js.map
 output/events.json
 LOGS
+LOGS/
+LOGS/*

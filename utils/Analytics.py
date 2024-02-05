@@ -14,7 +14,11 @@ class Analytics:
         self.total_user_count = 0
         self.users_served_count = 0
         self.utilization = 0
-        self.SLA_broke = 0
+        #self.SLA_broke = 0
+        self.SLA1_broke = 0
+        self.SLA2_broke = 0
+        self.SLA3_broke = 0
+        self.SLA4_broke = 0
 
     arrivals = defaultdict(lambda: 0)
     utilization_percent = defaultdict(lambda: [])
@@ -52,11 +56,29 @@ class Analytics:
         print(f"USER WAIT [{wait}]")
         print(wait)
         self.register_wait_for_getting(queue_end, wait)
-        if wait > Properties.SLA:
-            self.SLA_broke += 1
-            print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA}!")
-            print(f"SLA was broken {self.SLA_broke} times during this simulation")
-            self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA)
+        if wait > Properties.SLA1:
+            self.SLA1_broke += 1
+            if wait > Properties.SLA2:
+                self.SLA2_broke += 1
+                if wait > Properties.SLA3:
+                    self.SLA3_broke += 1
+                    if wait > Properties.SLA4:
+                        self.SLA4_broke += 1
+                        print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA4}!")
+                        print(f"SLA was broken {self.SLA4_broke} times during this simulation")
+                        self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA4)
+                    else:
+                        print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA3}!")
+                        print(f"SLA was broken {self.SLA3_broke} times during this simulation")
+                        self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA3)
+                else:
+                    print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA2}!")
+                    print(f"SLA was broken {self.SLA2_broke} times during this simulation")
+                    self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA2)
+            else:
+                print(f"User({user.user_id}) waited {wait} minutes and broke SLA: {Properties.SLA1}!")
+                print(f"SLA was broken {self.SLA1_broke} times during this simulation")
+                self.database.log_event(EventType.SLA_BROKE.value, user.user_id, queue_end, Properties.SLA1)
         print(f"User({user.user_id}) waited {wait} minutes")
         if self.log_to_database:
             self.database.log_event(EventType.USER_WAIT.value, user.user_id, queue_end, wait)
