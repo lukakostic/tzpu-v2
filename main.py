@@ -19,16 +19,87 @@ from utils.Options import Options
 
 import simpy
 import json
+import time
 import tkinter as tk
 
 import numpy as np
 import random
 import sys
 
+from datetime import datetime
+#import threading
+import os
 
-
-
+SEED = 42
 ui = False    #ovde dal hoces UI
+
+_arrival_pattern = None
+_broker_choice = None
+_initial_wave = None
+_sla = None
+_resurs_mean = None
+_resurs_std = None
+_set_raspodela = None
+pocetne_vrednosti = [0, 0, 0, 0, 0, 0, True]
+
+_single_run = False
+one_important_txt = False
+
+_i_ = 0
+args = list(map(lambda x: x.lower(), sys.argv[1:]))
+while _i_ < len(args):
+    if(args[_i_]=="seed"):
+        SEED = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="u" or args[_i_]=="ui"):
+        ui = ((args[_i_+1])[0]=="t" or (args[_i_+1])[0]=="y" or (args[_i_+1])[0]=="true")
+        _i_+=1
+    elif(args[_i_]=="i" or args[_i_]=="iw" or args[_i_]=="initial_wave"):
+        _initial_wave = ((args[_i_+1])[0]=="t" or (args[_i_+1])[0]=="y" or (args[_i_+1])[0]=="true")
+        _i_+=1
+    elif(args[_i_]=="one_txt"):
+        one_important_txt = True
+    elif(args[_i_]=="one_txt_f"):
+        one_important_txt = False
+    elif(args[_i_]=="e" or args[_i_]=="exit"):
+        _single_run = True
+    elif(args[_i_]=="broker" or args[_i_]=="b"):
+        _broker_choice = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="arrival" or args[_i_]=="a"):
+        _arrival_pattern = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="sla" or args[_i_]=="s"):
+        _sla = float(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="set" or args[_i_]=="s_r"):
+        _set_raspodela = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="resurs_mean" or args[_i_]=="r_m"):
+        _resurs_mean = float(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="resurs_std" or args[_i_]=="r_s"):
+        _resurs_std = float(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="ready_count" or args[_i_]=="r_c"):
+        Properties.READY_COUNT = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="max_available_resources" or args[_i_]=="m_a_r"):
+        Properties.MAX_AVAILABLE_RESOURCES = int(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="critical_utilisation_percent" or args[_i_]=="c_u_p"):
+        Properties.CRITICAL_UTILISATION_PERCENT = float(args[_i_+1])
+        _i_+=1
+    elif(args[_i_]=="resource_add_number" or args[_i_]=="r_a_n"):
+        Properties.RESOURCE_ADD_NUMBER = int(args[_i_+1])
+        _i_+=1
+    else:
+        print(f"Bad argument: {args[_i_]}")
+        sys.exit()
+    _i_+=1
+
+
+
 
 main = None
 graph = None
@@ -47,31 +118,39 @@ if ui:
     canvas.pack(side=tk.TOP, expand=False)
 
 ############################################
-def rnd(tp,idx=None):
-    return random.choice(tp) if(idx==None) else tp[idx]
-# Tp
-Properties.RESOURCE_PREPARE_TIME_MEAN = random.uniform(0.5,8)
-Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.1,0.3)
-# SLA kriterijumi
-Properties.SLA = rnd((0.1, 0.5, 1, 1.5))
-# arrival pattern
+# def rnd(tp,idx=None):
+#     return random.choice(tp) if(idx==None) else tp[idx]
+# # Tp
+# Properties.RESOURCE_PREPARE_TIME_MEAN = random.uniform(0.5,8)
+# Properties.RESOURCE_PREPARE_TIME_STD = random.uniform(0.1,0.3)
+# # SLA kriterijumi
+# Properties.SLA = rnd((0.1, 0.5, 1, 1.5))
+# # arrival pattern
 
-print("Choose arrival pattern option (1, 2, 3)")
-Properties.ARRIVAL_PATTERN = int(input())
+# if(arrival_pattern == None):
+#     print("Choose arrival pattern option (1, 2, 3)")
+#     Properties.ARRIVAL_PATTERN = int(input())
+# else:
+#     Properties.ARRIVAL_PATTERN = arrival_pattern
 
-print("Choose broker option (1, 2, 3) "
-      "1=Broker(CriticalUserPercent) "
-      "2=PrepareWhenZero "
-      "3=NoPreparing")
-Properties.BROKER_TYPE = int(input())
+# if(broker_choice == None):
+#     print("Choose broker option (1, 2, 3) "
+#         "1=Broker(CriticalUserPercent) "
+#         "2=PrepareWhenZero "
+#         "3=NoPreparing")
+#     Properties.BROKER_TYPE = int(input())
+# else:
+#     Properties.BROKER_TYPE = broker_choice
 
-print("Is initial wave known (y/N)")
-y_n = input()
-if y_n == "y" or y_n == "Y":
-    Properties.INITIAL_WAVE_KNOWN = True
-else:
-    Properties.INITIAL_WAVE_KNOWN = False
-
+# if(initial_wave == None):
+#     print("Is initial wave known (y/N)")
+#     y_n = input()
+#     if y_n == "y" or y_n == "Y":
+#         Properties.INITIAL_WAVE_KNOWN = True
+#     else:
+#         Properties.INITIAL_WAVE_KNOWN = False
+# else:
+#     Properties.INITIAL_WAVE_KNOWN = initial_wave
 
 ## option 1
 ##Properties.USER_COUNT = 300
@@ -79,7 +158,7 @@ else:
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35))
 
 ## option 2
-Properties.USER_COUNT = 300
+Properties.USER_COUNT = 30
 #### T = 0
 ##Properties.USERS_PER_LOGIN_MEAN = rnd((20,35,100))
 #### T>0
@@ -103,42 +182,44 @@ Properties.USER_COUNT = 300
 
 ############################################
 
-
+DONE = True
 
 def create_clock(environment):
-    while True:
+    while not DONE:
         yield environment.timeout(1)
         if ui and graph:
             graph.tick(environment.now)
 
 
-def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
+def start_simulation(env: RealtimeEnvironment, broker, user_scheduler,opcije):
     Properties.SIMULATION_UUID = str(uuid.uuid4())
     print(Properties.SIMULATION_UUID)
 
     user_id = 1
     next_person_id = 0
 
-    database.WriteImportant(Properties.SLA,"SLA ")
-    database.WriteImportant(Properties.ARRIVAL_PATTERN,"ARRIVAL_PATTERN ")
-    database.WriteImportant(Properties.INITIAL_WAVE_KNOWN,"INITIAL_WAVE_KNOWN ")
-    database.WriteImportant(Properties.BROKER_TYPE,"BROKER_TYPE ")
-    database.WriteImportant(Properties.READY_COUNT,"READY_COUNT ")
-    database.WriteImportant(Properties.MAX_AVAILABLE_RESOURCES,"MAX_AVAILABLE_RESOURCES ")
-    database.WriteImportant(Properties.CRITICAL_UTILISATION_PERCENT,"CRITICAL_UTILISATION_PERCENT ")
-    database.WriteImportant(Properties.RESOURCE_ADD_NUMBER,"RESOURCE_ADD_NUMBER ")
-    database.WriteImportant(Properties.SET_RASPOREDA,"SET_RASPOREDA ")
-    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_MEAN,"RESOURCE_PREPARE_TIME_MEAN ")
-    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_MEAN,"RESOURCE_PREPARE_TIME_MEAN ")
-    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_STD,"RESOURCE_PREPARE_TIME_STD ")
-    database.WriteImportant(Properties.USERS_PER_LOGIN_MEAN,"USERS_PER_LOGIN_MEAN ")
-    database.WriteImportant(Properties.NEXT_LOGIN_MEAN,"NEXT_LOGIN_MEAN ")
-    database.WriteImportant(Properties.NEXT_LOGIN_STD,"NEXT_LOGIN_STD ")
-    database.WriteImportant(Properties.USER_COUNT,"USER_COUNT ")
-    database.WriteImportant(user_scheduler.INTER_ARRIVAL_TIMES,"INTER_ARRIVAL_TIMES ")
-    database.WriteImportant(user_scheduler.USERS_NUMBER,"USERS_NUMBER ")
-    database.WriteImportant(user_scheduler.USAGE_TIME,"USAGE_TIME ")
-    database.WriteImportant(user_scheduler.TIME_BETWEEN_LOGINS,"TIME_BETWEEN_LOGINS ")
+    database.WriteImportant(f"\n{'{'}\n\"id\":\"{Properties.SIMULATION_UUID}\",\"time\":\"{datetime.now()}\",",None)
+    database.WriteImportant(opcije,"opcije")
+    database.WriteImportant(SEED,"SEED")
+    database.WriteImportant(Properties.SLA,"SLA")
+    database.WriteImportant(Properties.ARRIVAL_PATTERN,"ARRIVAL_PATTERN")
+    database.WriteImportant(Properties.INITIAL_WAVE_KNOWN,"INITIAL_WAVE_KNOWN")
+    database.WriteImportant(Properties.BROKER_TYPE,"BROKER_TYPE")
+    database.WriteImportant(Properties.READY_COUNT,"READY_COUNT")
+    database.WriteImportant(Properties.MAX_AVAILABLE_RESOURCES,"MAX_AVAILABLE_RESOURCES")
+    database.WriteImportant(Properties.CRITICAL_UTILISATION_PERCENT,"CRITICAL_UTILISATION_PERCENT")
+    database.WriteImportant(Properties.RESOURCE_ADD_NUMBER,"RESOURCE_ADD_NUMBER")
+    database.WriteImportant(Properties.SET_RASPOREDA,"SET_RASPOREDA")
+    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_MEAN,"RESOURCE_PREPARE_TIME_MEAN")
+    database.WriteImportant(Properties.RESOURCE_PREPARE_TIME_STD,"RESOURCE_PREPARE_TIME_STD")
+    database.WriteImportant(Properties.USERS_PER_LOGIN_MEAN,"USERS_PER_LOGIN_MEAN")
+    database.WriteImportant(Properties.NEXT_LOGIN_MEAN,"NEXT_LOGIN_MEAN")
+    database.WriteImportant(Properties.NEXT_LOGIN_STD,"NEXT_LOGIN_STD")
+    database.WriteImportant(Properties.USER_COUNT,"USER_COUNT")
+    database.WriteImportant(user_scheduler.INTER_ARRIVAL_TIMES,"INTER_ARRIVAL_TIMES")
+    database.WriteImportant(user_scheduler.USERS_NUMBER,"USERS_NUMBER")
+    database.WriteImportant(user_scheduler.USAGE_TIME,"USAGE_TIME")
+    database.WriteImportant(user_scheduler.TIME_BETWEEN_LOGINS,"TIME_BETWEEN_LOGINS")
 
     ## ako je poznato T = 0 i intenzitet inicijalnog udara
 
@@ -167,26 +248,26 @@ def start_simulation(env: RealtimeEnvironment, broker, user_scheduler):
             user = User("user", user_id)
             user_id += 1
             env.process(broker.user_login(user))
-            print("USER_--------------------")
 
             yield env.timeout(user_scheduler.TIME_BETWEEN_LOGINS.pop())
 
-    print("DONE111 !!!!!!!!!!!!!!!!!")
+
     database.WriteImportant(graph.avg_wait(graph.utilization),"avg_utilization ")
     database.WriteImportant(graph.avg_wait(graph.wait_for_resource),"avg_wait ")
     database.WriteImportant(broker.analytics.SLA_broke,"SLA_broke ")
-
+    database.WriteImportant("},",None)
+    
     env.process(broker.end_process())
     database.writeAll()
     database.clear()
     print("DONE !!!!!!!!!!!!!!!!!")
-
+    DONE = True
     if ui:
         create_window()
-        input()
+        #input()
         main.destroy()
     #else:
-    sys.exit()
+    if _single_run: sys.exit()
 
 
 def create_window(broker):
@@ -206,14 +287,15 @@ def close():
     main.destroy()
 
 
-def test_option():
-
-    SEED = 42
-
+def test_option(opcije):
+    global DONE, database, analytics, user_scheduler, graph, main, canvas, log
+    DONE = False
     random.seed(SEED)
     np.random.seed(seed=SEED)
+    if not one_important_txt:
+        Properties.IMPORTANT_TXT_SUFFIX = json.dumps(opcije)
 
-    print("########################")
+    print("###$$$$$$$~~~~~~~~~~~~~~~~~~~~~~~~~$$$$$$$###")
     print(f" RESOURCE_PREPARE_TIME_MEAN: {Properties.RESOURCE_PREPARE_TIME_MEAN}")
     print(f" RESOURCE_PREPARE_TIME_STD: {Properties.RESOURCE_PREPARE_TIME_STD}")
     print(f" SLA: {Properties.SLA}")
@@ -234,12 +316,12 @@ def test_option():
 
     user_scheduler.real_mod()
     database.log_simulation_start()
-
+    
     log = None
     if ui:
         log = DisplayLog(canvas, 5, 20)
-        graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
-                       analytics.arrivals)
+    graph = Graphs(canvas, main, analytics.utilization_percent, analytics.waits_for_getting,
+                    analytics.arrivals)
 
     resource_provider = ResourceProvider(env)
     if Properties.BROKER_TYPE == 2:
@@ -249,46 +331,73 @@ def test_option():
     else:
         broker = Broker(log, resource_provider, user_scheduler, env)
 
-    process = env.process(start_simulation(env, broker, user_scheduler))
+    process = env.process(start_simulation(env, broker, user_scheduler,opcije))
     env.process(create_clock(env))
+
+    print("PRE RUNNNNNN @@@@@@@@@@@@@@@@@@@@@@@@@@")
 
     if Properties.CONSTANT_USER_COUNT_ENABLED:
         env.run()
     else:
         env.run(until=Properties.SIMULATION_DURATION_MINUTES)
 
+    print("POST RUNNNNNN @@@@@@@@@@@@@@@@@@@@@@@@@@")
     if ui:
         main.mainloop()
 
-pocetne_vrednosti = [0, 0, 0, 0, 0, 0, True]
+    print("END RUNNNNNN @@@@@@@@@@@@@@@@@@@@@@@@@@")
 
-for tp_mean_opt in Options.RESOURCE_PREPARE_TIME_MEAN_OPTS[pocetne_vrednosti[0]:]:
-    Properties.RESOURCE_PREPARE_TIME_MEAN = tp_mean_opt
-    for tp_std_opt in Options.RESOURCE_PREPARE_TIME_STD_OPTS[pocetne_vrednosti[1]:]:
-        Properties.RESOURCE_PREPARE_TIME_STD = tp_std_opt
-        for sla_opt in Options.SLA_OPTS[pocetne_vrednosti[2]:]:
-            Properties.SLA = sla_opt
-            for arrival_pat in range(pocetne_vrednosti[3], 3):
-                Properties.ARRIVAL_PATTERN = arrival_pat
-                for broker_type in range(pocetne_vrednosti[4], 3):
-                    Properties.BROKER_TYPE = broker_type
-                    for set_raspodela in range(pocetne_vrednosti[5], 9):
-                        Properties.SET_RASPOREDA = set_raspodela
-                        if Properties.ARRIVAL_PATTERN == 2:
-                            if pocetne_vrednosti[6]:
-                                Properties.INITIAL_WAVE_KNOWN = True
-                                test_option()
-                            Properties.INITIAL_WAVE_KNOWN = False
-                            test_option()
-                        else:
-                            test_option()
-                        pocetne_vrednosti[6] = True
-                    pocetne_vrednosti[5] = 0
-                pocetne_vrednosti[4] = 0
-            pocetne_vrednosti[3] = 0
-        pocetne_vrednosti[2] = 0
-    pocetne_vrednosti[1] = 0
+def start_proc(opcije,ready_count,max_available_resources,critical_utilisation_percent,resource_add_number):
+    #time.sleep(0.2)
+    os.system(f"python3 main.py e r_m {opcije[0]} r_s {opcije[1]} s {opcije[2]} a {opcije[3]} b {opcije[4]} s_r {opcije[5]} i {opcije[6]} r_c {ready_count} m_a_r {max_available_resources} c_u_p {critical_utilisation_percent} r_a_n {resource_add_number}")
 
+if _single_run == False:
+    for tp_mean_opt in Options.RESOURCE_PREPARE_TIME_MEAN_OPTS[pocetne_vrednosti[0]:]:
+        Properties.RESOURCE_PREPARE_TIME_MEAN = tp_mean_opt
+        for tp_std_opt in Options.RESOURCE_PREPARE_TIME_STD_OPTS[pocetne_vrednosti[1]:]:
+            Properties.RESOURCE_PREPARE_TIME_STD = tp_std_opt
+            for sla_opt in Options.SLA_OPTS[pocetne_vrednosti[2]:]:
+                Properties.SLA = sla_opt
+                for arrival_pat in range(pocetne_vrednosti[3], 3):
+                    Properties.ARRIVAL_PATTERN = arrival_pat
+                    if True:
+                        broker_type = 1
+                        #for broker_type in range(pocetne_vrednosti[4], 3):
+                        Properties.BROKER_TYPE = broker_type
+                        for set_raspodela in range(pocetne_vrednosti[5], 9):
+                            Properties.SET_RASPOREDA = set_raspodela
+                            opcije = [tp_mean_opt,tp_std_opt,sla_opt,arrival_pat,broker_type,set_raspodela,pocetne_vrednosti[6]]
+                            for max_available_resources in [80,100,120,150,10,30,50,200]:
+                                for critical_utilisation_percent in [0.4,0.6,0.8,0.9,0.2]:
+                                    for ready_count in [0,10,30,50,100]:
+                                        if ready_count > max_available_resources: continue
+                                        for resource_add_number in [1,5,10,20,50]:
+                                            if Properties.ARRIVAL_PATTERN == 2:
+                                                if pocetne_vrednosti[6]:
+                                                    opcije[-1] = True
+                                                    Properties.INITIAL_WAVE_KNOWN = True
+                                                    start_proc(opcije,ready_count,max_available_resources,critical_utilisation_percent,resource_add_number)
+                                                opcije[-1] = False
+                                                Properties.INITIAL_WAVE_KNOWN = False
+                                                start_proc(opcije,ready_count,max_available_resources,critical_utilisation_percent,resource_add_number)
+                                            else:
+                                                start_proc(opcije,ready_count,max_available_resources,critical_utilisation_percent,resource_add_number)
+                            pocetne_vrednosti[6] = True
+                        pocetne_vrednosti[5] = 0
+                    pocetne_vrednosti[4] = 0
+                pocetne_vrednosti[3] = 0
+            pocetne_vrednosti[2] = 0
+        pocetne_vrednosti[1] = 0
+else:
+    opcije = [_resurs_mean,_resurs_std,_sla,_arrival_pattern,_broker_choice,_set_raspodela,_initial_wave]
+    Properties.RESOURCE_PREPARE_TIME_MEAN = _resurs_mean
+    Properties.RESOURCE_PREPARE_TIME_STD = _resurs_std
+    Properties.SLA = _sla
+    Properties.ARRIVAL_PATTERN = _arrival_pattern
+    Properties.BROKER_TYPE = _broker_choice
+    Properties.SET_RASPOREDA = _set_raspodela
+    Properties.INITIAL_WAVE_KNOWN = _initial_wave
+    test_option(opcije)
 
 
 

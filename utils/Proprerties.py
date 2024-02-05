@@ -54,6 +54,8 @@ class Properties:
     INITIAL_WAVE_KNOWN = True
     BROKER_TYPE = 1
 
+    IMPORTANT_TXT_SUFFIX = ""
+
     @staticmethod
     def get_positive_value_gauss(mean, std):
         value = int(random.gauss(mean, std))

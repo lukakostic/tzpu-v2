@@ -5,7 +5,7 @@ import pandas as pd
 
 from utils.Proprerties import Properties
 from datetime import datetime
-
+import json
 
 class DatabaseUtils:
     fileWrites = {
@@ -27,12 +27,16 @@ class DatabaseUtils:
         self.write("LOGS/Events.csv",f"{simulation_uuid}, {event_type}, User:{user_id}, Time:{timestamp}, Value:{duration}\n")
     def WriteSimulation(self, simulation_uuid:str):
         self.write("LOGS/Simulation.csv",f"{simulation_uuid}\n")
-        self.write("LOGS/Important.txt",f"\n{simulation_uuid}   , {datetime.now()}\n")
     def WriteProperties(self, simulation_uuid:str, type_:str, value:str):
         self.write("LOGS/Properties.csv",f"{simulation_uuid}, {type_}, {value}\n")
         
     def WriteImportant(self, txt:str, preTxt:str="",toPrint=False):
-        self.write("LOGS/Important.txt",f"{preTxt}{txt}\n")
+        if(type(txt)==bool): txt = "true" if txt else "false"
+        if(type(txt)==list): txt = json.dumps(txt)
+        if(preTxt == None):
+            self.write("LOGS/Important.txt",f"{txt}\n")
+        else:
+            self.write("LOGS/Important.txt",f"\"{preTxt}\":{txt},\n")
         if toPrint: print(f"{preTxt}{txt}")
         
     def write(self, file,str_):
@@ -50,6 +54,7 @@ class DatabaseUtils:
         for file,str_ in self.fileWrites.items():
             print("#######################")
             #print(str_)
+            if file=="LOGS/Important.txt": file = f"LOGS/Important{Properties.IMPORTANT_TXT_SUFFIX}.txt"
             with open(file, "a") as myfile:
                 myfile.write("\n" + str_)
     
