@@ -26,10 +26,7 @@ import random
 import sys
 
 
-SEED = 42
 
-random.seed(SEED)
-np.random.seed(seed=SEED)
 
 ui = False    #ovde dal hoces UI
 
@@ -106,8 +103,7 @@ Properties.USER_COUNT = 300
 
 ############################################
 
-database = DatabaseUtils()
-database.clear()
+
 
 def create_clock(environment):
     while True:
@@ -211,6 +207,25 @@ def close():
 
 
 def test_option():
+
+    SEED = 42
+
+    random.seed(SEED)
+    np.random.seed(seed=SEED)
+
+    print("########################")
+    print(f" RESOURCE_PREPARE_TIME_MEAN: {Properties.RESOURCE_PREPARE_TIME_MEAN}")
+    print(f" RESOURCE_PREPARE_TIME_STD: {Properties.RESOURCE_PREPARE_TIME_STD}")
+    print(f" SLA: {Properties.SLA}")
+    print(f" ARRIVAL_PATTERN: {Properties.ARRIVAL_PATTERN}")
+    print(f" ARRIVAL_PATTERN: {Properties.ARRIVAL_PATTERN}")
+    print(f"BROKER_TYPE: {Properties.BROKER_TYPE}")
+    print(f"SET_RASPOREDA: {Properties.SET_RASPOREDA}")
+    print(f"INITIAL_WAVE_KNOWN: {Properties.INITIAL_WAVE_KNOWN}")
+
+    database = DatabaseUtils()
+    database.clear()
+
     env = simpy.rt.RealtimeEnvironment(factor=(1.0 / Properties.TIME_SPEEDUP), strict=False)
 
     analytics = Analytics()
@@ -248,8 +263,11 @@ def test_option():
 pocetne_vrednosti = [0, 0, 0, 0, 0, 0, True]
 
 for tp_mean_opt in Options.RESOURCE_PREPARE_TIME_MEAN_OPTS[pocetne_vrednosti[0]:]:
+    Properties.RESOURCE_PREPARE_TIME_MEAN = tp_mean_opt
     for tp_std_opt in Options.RESOURCE_PREPARE_TIME_STD_OPTS[pocetne_vrednosti[1]:]:
+        Properties.RESOURCE_PREPARE_TIME_STD = tp_std_opt
         for sla_opt in Options.SLA_OPTS[pocetne_vrednosti[2]:]:
+            Properties.SLA = sla_opt
             for arrival_pat in range(pocetne_vrednosti[3], 3):
                 Properties.ARRIVAL_PATTERN = arrival_pat
                 for broker_type in range(pocetne_vrednosti[4], 3):
